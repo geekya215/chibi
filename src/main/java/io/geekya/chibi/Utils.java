@@ -50,7 +50,7 @@ public final class Utils {
     }
 
     public static String wrapInHTML(String original) {
-        return "<html><body>" + original + "</body></html>";
+        return "<html><link rel=\"shortcut icon\">" + "<body>" + original + "</body></html>";
     }
 
     public static String generateHttpLog(HttpExchange ctx, int status, long size) {

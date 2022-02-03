@@ -24,8 +24,12 @@ public class PageHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange ctx) throws IOException {
+        String path = ctx.getRequestURI().getPath();
+        // discard the favicon request
+        if (path.equals("/favicon.ico")) {
+            return;
+        }
         try {
-            String path = ctx.getRequestURI().getPath();
             String page = wrapInHTML(generateNavigation(path) + generateDirList(dir, path));
 
             ctx.getResponseHeaders().set("Content-Type", "text/html");
