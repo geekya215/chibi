@@ -37,14 +37,13 @@ public class PageHandler implements HttpHandler {
             ctx.getResponseBody().write(page.getBytes());
 
             logger.info(generateHttpLog(ctx, HTTP_OK, page.getBytes().length));
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
             String ERROR_MESSAGE = "Oops! Something went wrong.";
-
             ctx.sendResponseHeaders(HTTP_INTERNAL_ERROR, ERROR_MESSAGE.getBytes().length);
             ctx.getResponseBody().write(ERROR_MESSAGE.getBytes());
 
             logger.warning(generateHttpLog(ctx, HTTP_INTERNAL_ERROR, ERROR_MESSAGE.getBytes().length));
-            logger.warning(e.getMessage());
+            e.printStackTrace();
         } finally {
             ctx.close();
         }
