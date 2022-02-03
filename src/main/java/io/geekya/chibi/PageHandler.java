@@ -30,7 +30,7 @@ public class PageHandler implements HttpHandler {
             return;
         }
         try {
-            String page = wrapInHTML(generateNavigation(path) + generateDirList(dir, path));
+            String page = wrapInHTML(generateNavigation(path) + wrapInTable(generateDirList(dir, path)));
 
             ctx.getResponseHeaders().set("Content-Type", "text/html");
             ctx.sendResponseHeaders(HTTP_OK, page.getBytes().length);

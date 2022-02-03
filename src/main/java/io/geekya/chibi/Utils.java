@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -39,16 +40,43 @@ public final class Utils {
             dirStream
               .filter(File::isDirectory)
               .sorted(Comparator.comparing(File::getName))
-              .map(d -> "<a href=\"" + d.getName() + "/\">" + d.getName() + "/</a>"),
+              .map(d -> {
+                  String name = "<td><a href=\"" + d.getName() + "/\">" + d.getName() + "/</a></td>\n";
+                  String date = "<td align=\"right\">" + formatFileLastModifyTime(d.lastModified()) + "</td>\n";
+                  String size = "<td align=\"right\">-</td>\n";
+                  return name + date + size;
+              }),
             fileStream
               .filter(File::isFile)
               .sorted(Comparator.comparing(File::getName))
-              .map(f -> "<a href=\"" + "/download" + relativeDir + f.getName() + "\">" + f.getName() + "</a>")
+              .map(f -> {
+                  String name = "<td><a href=\"" + "/download" + relativeDir + f.getName() + "\">" + f.getName() + "</a></td>\n";
+                  String date = "<td align=\"right\">" + formatFileLastModifyTime(f.lastModified()) + "</td>\n";
+                  String size = "<td align=\"right\">" + convertSizeToHumanReadable(f.length()) + "</td>\n";
+                  return name + date + size;
+              })
           )
-          .map(s -> "<div>" + s + "</div>")
+          .map(s -> "<tr>" + s + "</tr>")
           .toList();
         String rest = String.join("\n", items);
         return parentDir + rest;
+    }
+
+    // notice: this method precious is not accurate
+    public static String convertSizeToHumanReadable(long size) {
+        if (size < 1024) {
+            return String.format("%d B", size);
+        } else if (size < 1024 * 1024) {
+            return String.format("%.2f KB", size / 1024.0);
+        } else if (size < 1024 * 1024 * 1024) {
+            return String.format("%.2f MB", size / 1024.0 / 1024.0);
+        } else {
+            return String.format("%.2f GB", size / 1024.0 / 1024.0 / 1024.0);
+        }
+    }
+
+    public static String formatFileLastModifyTime(long time) {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(time);
     }
 
     public static String generateParent(String rootDir, String relativeDir) {
@@ -57,12 +85,16 @@ public final class Utils {
         } else {
             String currentDirName = Paths.get(rootDir + relativeDir).toFile().getName();
             String parentDir = relativeDir.substring(0, relativeDir.length() - currentDirName.length() - 1);
-            return "<div><a href=\"" + parentDir + "\">" + "../</a>\n";
+            return "<tr><td><a href=\"" + parentDir + "\">" + "../</a></td></tr>\n";
         }
     }
 
     public static String generateNavigation(String relativeDir) {
-        return "<h1>Index of " + relativeDir + "</h1>";
+        return "<h1>Index of " + relativeDir + "</h1><hr>";
+    }
+
+    public static String wrapInTable(String original) {
+        return "<table style=\"border-spacing:15px 0px;\"><tbody>" + original + "</tbody></table>";
     }
 
     public static String wrapInHTML(String original) {
