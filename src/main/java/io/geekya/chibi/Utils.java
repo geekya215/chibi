@@ -2,10 +2,13 @@ package io.geekya.chibi;
 
 import com.sun.net.httpserver.HttpExchange;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public final class Utils {
     public static final int DEFAULT_PORT = 8080;
@@ -29,9 +32,22 @@ public final class Utils {
     public static String generateDirList(String rootDir, String relativeDir) throws NullPointerException {
         String currentDir = rootDir + relativeDir;
         String parentDir = generateParent(rootDir, relativeDir);
-        String rest = String.join("\n", Arrays.stream(Objects.requireNonNull(Paths.get(currentDir).toFile().listFiles()))
-                .map(f -> f.isDirectory() ? "<a href=\"" + f.getName() + "/\">" + f.getName() + "/</a>" : "<a href=\"" + "/download" + relativeDir + f.getName() + "\">" + f.getName() + "</a>")
-                .map(s -> "<div>" + s + "</div>").toList());
+        Stream<File> dirStream = Arrays.stream(Objects.requireNonNull(Paths.get(currentDir).toFile().listFiles()));
+        Stream<File> fileStream = Arrays.stream(Objects.requireNonNull(Paths.get(currentDir).toFile().listFiles()));
+        List<String> items = Stream
+          .concat(
+            dirStream
+              .filter(File::isDirectory)
+              .sorted(Comparator.comparing(File::getName))
+              .map(d -> "<a href=\"" + d.getName() + "/\">" + d.getName() + "/</a>"),
+            fileStream
+              .filter(File::isFile)
+              .sorted(Comparator.comparing(File::getName))
+              .map(f -> "<a href=\"" + "/download" + relativeDir + f.getName() + "\">" + f.getName() + "</a>")
+          )
+          .map(s -> "<div>" + s + "</div>")
+          .toList();
+        String rest = String.join("\n", items);
         return parentDir + rest;
     }
 
